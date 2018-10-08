@@ -1,0 +1,24 @@
+--create
+Time_job
+--meta-connect
+jdbc:hsqldb:hsql://localhost:16000/sqoop
+-- 
+import
+--connect
+jdbc:mysql://localhost/CDW_SAPP
+--driver
+com.mysql.jdbc.Driver
+-m
+1
+--query
+select TRANSACTION_ID, concat(DAY,MONTH,YEAR) as TIMEID, DAY, MONTH, case when MONTH <= 3 then "1st Q" when MONTH <= 6 then "2nd Q" when MONTH <= 9 then "3rd Q" when MONTH <= 12 then "4th Q" when MONTH <= 0 or MONTH>12 then "not valid" end as QUARTER, YEAR from CDW_SAPP_CREDITCARD where $CONDITIONS
+--target-dir
+/Credit_Card_System/TEMP_TIME/
+--incremental
+append
+--check-column
+TRANSACTION_ID
+--last-value
+"0"
+--merge-key
+TRANSACTION_ID

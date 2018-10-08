@@ -1,0 +1,247 @@
+<workflow-app xmlns="uri:oozie:workflow:0.2"
+	name="Process Automation Module">
+	<start to="isFileExists" />
+
+
+<!--  sqoop-metastore needs to be running  -->
+
+	<decision name="isFileExists">
+         <switch>
+            <case to="import_Branch">
+              ${fs:exists(Credit_Card_System_files_PATH)}
+            </case>
+            <default to="fork_Create_Sqoop_jobs" />
+         </switch>
+	</decision>
+
+	<fork name="fork_Create_Sqoop_jobs">
+        <path start="Create_Branch_job"/>
+        <path start="Create_Credit_Card_job"/>
+        <path start="Create_Time_job"/>
+        <path start="Create_Customer_job"/>
+    </fork>
+    
+	
+	<action name="Create_Branch_job">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<arg>job</arg>
+			<arg>--options-file</arg>
+			<arg>${BRANCH_SQOOP_SCRIPT}</arg>
+			<file>${BRANCH_SQOOP_PATH}</file>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="join_Create_Sqoop_jobs" />
+		<error to="fail" />
+	</action>
+
+	<action name="Create_Credit_Card_job">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<arg>job</arg>
+			<arg>--options-file</arg>
+			<arg>${CREDIT_CARD_SQOOP_SCRIPT}</arg>
+			<file>${CREDIT_CARD_SQOOP_PATH}</file>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="join_Create_Sqoop_jobs" />
+		<error to="fail" />
+	</action>
+	
+	<action name="Create_Time_job">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<arg>job</arg>
+			<arg>--options-file</arg>
+			<arg>${TIME_SQOOP_SCRIPT}</arg>
+			<file>${TIME_SQOOP_PATH}</file>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="join_Create_Sqoop_jobs" />
+		<error to="fail" />
+	</action>
+	
+	<action name="Create_Customer_job">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<arg>job</arg>
+			<arg>--options-file</arg>
+			<arg>${CUSTOMER_SQOOP_SCRIPT}</arg>
+			<file>${CUSTOMER_SQOOP_PATH}</file>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="join_Create_Sqoop_jobs" />
+		<error to="fail" />
+	</action>
+	
+	<join name="join_Create_Sqoop_jobs" to="import_Branch"/>
+
+    
+    
+	<action name="import_Branch">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec Branch_job</command>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="import_Credit_Card" />
+		<error to="fail" />
+	</action>
+
+	<action name="import_Credit_Card">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec Credit_Card_job</command>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="import_Time" />
+		<error to="fail" />
+	</action>
+
+	<action name="import_Time">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec Time_job</command>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="import_Customer" />
+		<error to="fail" />
+	</action>
+
+	<action name="import_Customer">
+		<sqoop xmlns="uri:oozie:sqoop-action:0.2">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+
+			<configuration>
+				<property>
+					<name>mapred.job.queue.name</name>
+					<value>${queueName}</value>
+				</property>
+			</configuration>
+			<command>job --meta-connect jdbc:hsqldb:hsql://localhost:16000/sqoop --exec Customer_job</command>
+			<archive>${JSON_PATH}</archive>
+		</sqoop>
+		<ok to="Create_temp_Table" />
+		<error to="fail" />
+	</action>
+
+
+
+	<action name="Create_temp_Table">
+		<hive xmlns="uri:oozie:hive-action:0.4">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<script>${CREATE_TEMP_TABLES_SCRIPT}
+			</script>
+		</hive>
+
+		<ok to="Create_Partitioned_Tables" />
+		<error to="fail" />
+	</action>
+
+
+	<action name="Create_Partitioned_Tables">
+		<hive xmlns="uri:oozie:hive-action:0.4">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<script>${CREATE_PARTITIONED_TABLES_SCRIPT}
+			</script>
+		</hive>
+
+		<ok to="clean_up" />
+		<error to="fail" />
+	</action>
+
+
+	<action name="clean_up">
+		
+			
+		<hive xmlns="uri:oozie:hive-action:0.4">
+			<job-tracker>${jobTracker}</job-tracker>
+			<name-node>${nameNode}</name-node>
+			<prepare>
+					<delete
+					path="${nameNode}/Credit_Card_System/TEMP_BRANCH" />
+					<delete
+					path="${nameNode}/Credit_Card_System/TEMP_CUSTOMER" />
+					<delete
+					path="${nameNode}/Credit_Card_System/TEMP_TIME" />
+					<delete
+					path="${nameNode}/Credit_Card_System/TEMP_CREDIT_CARD" />
+			</prepare>
+			
+			<script>${CLEAN_UP_TEMP_TABLES_SCRIPT}
+			</script>
+		</hive>
+		<ok to="end" />
+		<error to="fail" />
+	</action>
+	
+	
+	
+	
+	<kill name="fail">
+		<message>
+			Sqoop failed, error
+			message[${wf:errorMessage(wf:lastErrorNode())}]
+		</message>
+	</kill>
+	<end name="end" />
+</workflow-app>

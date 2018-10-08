@@ -1,0 +1,24 @@
+--create
+Credit_Card_job
+--meta-connect
+jdbc:hsqldb:hsql://localhost:16000/sqoop
+-- 
+import
+--connect
+jdbc:mysql://localhost/CDW_SAPP
+--driver
+com.mysql.jdbc.Driver
+--query
+select CREDIT_CARD_NO as CUST_CC_NO,TRANSACTION_ID, concat(DAY,MONTH,YEAR) as TIMEID, CUST_SSN, BRANCH_CODE, TRANSACTION_TYPE, TRANSACTION_VALUE from CDW_SAPP_CREDITCARD where $CONDITIONS
+-m
+1
+--target-dir
+/Credit_Card_System/TEMP_CREDIT_CARD/
+--incremental
+append
+--check-column
+TRANSACTION_ID
+--last-value
+"0"
+--merge-key
+TRANSACTION_ID

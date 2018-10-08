@@ -1,0 +1,12 @@
+<coordinator-app xmlns="uri:oozie:coordinator:0.2"
+	name="coord_copydata_from_external_orc" frequency="${frequency}"
+	start="${start}" end="${end}"
+	timezone="America/New_York">
+
+	<action>
+		<workflow>
+			<app-path>${MODULE_PATH}workflow.xml</app-path>
+		</workflow>
+	</action>
+
+</coordinator-app>

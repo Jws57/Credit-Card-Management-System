@@ -1,0 +1,8 @@
+create schema IF NOT EXISTS credit_card_system;
+
+use credit_card_system;
+
+drop table temp_branch;
+drop table temp_customer;
+drop table temp_time;
+drop table temp_credit_card;
